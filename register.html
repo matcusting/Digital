@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title id="title">心理辅导系统 - 注册</title>
+  <title>心理辅导系统 - 注册</title>
   <style>
     body {
       font-family: "Microsoft YaHei", sans-serif;
@@ -33,239 +33,130 @@
       /* ✨ 毛玻璃效果 */
       background: rgba(255, 255, 255, 0.75);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
     }
 
-    .register-box:hover {
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        transform: translateY(-2px);
-    }
+    h2 { color: #4a5568; margin-bottom: 25px; }
 
-    h1 {
-      margin-bottom: 30px;
-      color: #333;
-      font-size: 24px;
-      border-bottom: 2px solid #a18cd1;
-      padding-bottom: 10px;
-    }
-
-    .input-group {
-      margin-bottom: 20px;
-      text-align: left;
-    }
-
-    .input-group label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-        color: #555;
-    }
-
-    input[type="text"], input[type="password"], select {
+    input, select, button {
       width: 100%;
       padding: 12px;
-      border: 1px solid #ccc;
+      margin: 10px 0;
+      border: 1px solid #ddd;
       border-radius: 8px;
       box-sizing: border-box;
-      font-size: 16px;
-      transition: border-color 0.3s;
-    }
-
-    input[type="text"]:focus, input[type="password"]:focus, select:focus {
-        border-color: #a18cd1;
-        box-shadow: 0 0 5px rgba(161, 140, 209, 0.5);
-        outline: none;
     }
 
     button {
-      width: 100%;
-      padding: 15px;
-      background: #fbc2eb;
+      background: #2ecc71;
       color: white;
+      font-weight: bold;
       border: none;
-      border-radius: 8px;
-      font-size: 18px;
       cursor: pointer;
-      transition: background 0.3s, transform 0.1s;
-      font-weight: bold;
-      letter-spacing: 1px;
+      transition: background 0.3s;
     }
+    button:hover { background: #27ae60; }
 
-    button:hover {
-      background: #a18cd1;
-      transform: translateY(-1px);
+    a { color: #3498db; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .privacy-text {
+      font-size: 12px; 
+      color: #666; 
+      text-align: left; 
+      margin-top: 5px;
     }
-
-    .message-msg {
-      color: #e74c3c;
-      margin-top: 15px;
-      min-height: 20px;
-    }
-
-    .footer-links {
-      margin-top: 25px;
-      font-size: 14px;
-    }
-
-    .footer-links a {
-      color: #a18cd1;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .footer-links a:hover {
-        text-decoration: underline;
-    }
-
-    .lang-switcher {
-        margin-bottom: 20px;
-    }
-
-    .lang-switcher button {
-        width: auto;
-        padding: 8px 15px;
-        margin: 0 5px;
-        background-color: #eee;
-        color: #333;
-        font-size: 14px;
-    }
-
-    .lang-switcher button.active {
-        background-color: #a18cd1;
-        color: white;
+    
+    .teacher-key-group {
+        width: 100%;
+        margin: 10px 0;
+        text-align: left;
     }
   </style>
 </head>
 <body>
-
-<div class="register-box">
-    <div class="lang-switcher">
-        <button id="langZh" onclick="setLanguage('zh')">中文</button>
-        <button id="langEn" onclick="setLanguage('en')">English</button>
+  <div class="register-box">
+    <div class="lang-switch">
+      🌐 
+      <button onclick="setLanguage('zh')" style="width:auto; background:none; color:#3498db; padding:0;">中文</button> | 
+      <button onclick="setLanguage('en')" style="width:auto; background:none; color:#3498db; padding:0;">English</button> | 
+      <button onclick="setLanguage('ms')" style="width:auto; background:none; color:#3498db; padding:0;">Bahasa</button>
     </div>
-    <h1 id="title">心理辅导系统 - 注册</h1>
+
+    <h2 id="title">注册新账户</h2>
     
-    <div class="input-group">
-        <label for="role" id="roleLabel">身份</label>
-        <select id="role" onchange="toggleTeacherKey()">
-            <option value="student" id="roleStudent">学生</option>
-            <option value="teacher" id="roleTeacher">老师</option>
-        </select>
-    </div>
-
-    <div class="input-group" id="teacherKeyGroup" style="display: none;">
-        <label for="teacherKey" id="teacherKeyLabel">老师注册码</label>
-        <input type="password" id="teacherKey" placeholder="请输入老师注册码">
-    </div>
-
-    <div class="input-group">
-        <label for="username" id="usernameLabel">用户名</label>
-        <input type="text" id="username" placeholder="请输入用户名">
-    </div>
-
-    <div class="input-group">
-        <label for="password" id="passwordLabel">密码</label>
-        <input type="password" id="password" placeholder="请输入密码">
-    </div>
+    <select id="role" onchange="checkRole()">
+      <option value="student">学生 Student</option>
+      <option value="teacher">老师 Teacher</option>
+    </select>
     
-    <div class="input-group">
-        <label for="confirm" id="confirmLabel">确认密码</label>
-        <input type="password" id="confirm" placeholder="请再次输入密码">
-    </div>
+    <input type="text" id="username" placeholder="创建用户名 / Username">
+    <input type="password" id="password" placeholder="设置密码 / Password">
+    <input type="password" id="confirm" placeholder="确认密码 / Confirm password">
     
-    <button onclick="register()" id="registerBtn">注册</button>
-    
-    <p class="message-msg" id="msg"></p>
-
-    <div class="footer-links" id="loginLink">
-        <span id="haveAccountText">已有账户？</span> <a href="index.html" id="loginText">立即登录</a>
+    <div id="teacherKeyGroup" class="teacher-key-group" style="display:none;">
+        <label id="labelTeacherKey" for="teacherKey" style="font-weight:bold; font-size:14px; color:#555;">老师注册码:</label>
+        <input type="password" id="teacherKey" placeholder="输入老师注册码...">
     </div>
 
-</div>
+    <p id="privacyText" class="privacy-text">
+      🔒 您的所有信息将仅存储在您当前的浏览器中，不会上传至服务器。
+    </p>
 
-<script>
-    const TEACHER_KEY = "counselor2024"; // 简单的老师注册码
+    <button id="registerBtn" onclick="register()">注册 / Register</button>
+    <p id="msg" style="color: #e74c3c; font-size: 14px;"></p>
+    <p id="loginText" style="margin-top: 15px; font-size: 14px;">已有帐号？<a href="index.html">返回登录</a></p>
+  </div>
+
+  <script>
+    const TEACHER_KEY = "Admin123";
 
     const langText = {
-        zh: {
-            title: "心理辅导系统 - 注册",
-            roleLabel: "身份",
-            roleStudent: "学生",
-            roleTeacher: "老师",
-            usernameLabel: "用户名",
-            passwordLabel: "密码",
-            confirmLabel: "确认密码",
-            username: "请输入用户名",
-            password: "请输入密码",
-            confirm: "请再次输入密码",
-            register: "注册",
-            haveAccount: "已有账户？",
-            login: "立即登录",
-            teacher_key_label: "老师注册码",
-            teacher_key_placeholder: "请输入老师注册码",
-            empty: "用户名和密码不能为空",
-            mismatch: "两次密码输入不一致",
-            exists: "用户名已存在",
-            success: "注册成功！正在跳转到登录页...",
-            teacher_key_invalid: "老师注册码错误"
-        },
-        en: {
-            title: "Mental Health System - Register",
-            roleLabel: "Role",
-            roleStudent: "Student",
-            roleTeacher: "Teacher",
-            usernameLabel: "Username",
-            passwordLabel: "Password",
-            confirmLabel: "Confirm Password",
-            username: "Enter Username",
-            password: "Enter Password",
-            confirm: "Enter Password Again",
-            register: "Register",
-            haveAccount: "Already have an account?",
-            login: "Login Now",
-            teacher_key_label: "Teacher Key",
-            teacher_key_placeholder: "Enter Teacher Key",
-            empty: "Username and password cannot be empty",
-            mismatch: "Passwords do not match",
-            exists: "Username already exists",
-            success: "Registration successful! Redirecting to login page...",
-            teacher_key_invalid: "Invalid Teacher Key"
-        }
+      zh: {
+        title: "注册新账户", username: "创建用户名 / Username", password: "设置密码 / Password", confirm: "确认密码 / Confirm password",
+        register: "注册 / Register", empty: "用户名与密码不能为空！", mismatch: "两次输入的密码不一致！", exists: "用户名已存在！", success: "注册成功！正在跳转...",
+        login: "已有帐号？", login_link: "返回登录",
+        privacy: "🔒 您的所有信息将仅存储在您当前的浏览器中，不会上传至服务器。",
+        teacher_key_label: "老师注册码:", teacher_key_placeholder: "输入老师注册码...", teacher_key_invalid: "老师注册码无效！"
+      },
+      en: {
+        title: "Register New Account", username: "Create Username", password: "Set Password", confirm: "Confirm Password",
+        register: "Register", empty: "Username and password cannot be empty!", mismatch: "Passwords do not match!", exists: "Username already exists!", success: "Registration successful! Redirecting...",
+        login: "Already have an account?", login_link: "Back to login",
+        privacy: "🔒 All your information will be stored only in your current browser and will not be uploaded to the server.",
+        teacher_key_label: "Teacher Key:", teacher_key_placeholder: "Enter teacher key...", teacher_key_invalid: "Invalid Teacher Key!"
+      },
+      ms: {
+        title: "Daftar Akaun Baru", username: "Nama Pengguna", password: "Kata Laluan", confirm: "Sahkan Kata Laluan",
+        register: "Daftar", empty: "Nama pengguna dan kata laluan tidak boleh kosong!", mismatch: "Kata laluan tidak sepadan!", exists: "Nama pengguna sudah wujud!", success: "Pendaftaran berjaya! Sedang alih...",
+        login: "Sudah ada akaun?", login_link: "Kembali log masuk",
+        privacy: "🔒 Semua maklumat anda akan disimpan hanya dalam pelayar anda dan tidak akan dimuat naik ke pelayan.",
+        teacher_key_label: "Kunci Guru:", teacher_key_placeholder: "Masukkan kunci guru...", teacher_key_invalid: "Kunci Guru tidak sah!"
+      }
     };
 
-    function toggleTeacherKey() {
+    function checkRole() {
         const role = document.getElementById("role").value;
-        document.getElementById("teacherKeyGroup").style.display = (role === 'teacher' ? 'block' : 'none');
+        const keyGroup = document.getElementById("teacherKeyGroup");
+        keyGroup.style.display = role === 'teacher' ? 'block' : 'none';
     }
 
     function setLanguage(lang) {
-        localStorage.setItem("lang", lang);
-        const t = langText[lang];
-
-        // 更新按钮状态
-        document.getElementById("langZh").classList.toggle("active", lang === "zh");
-        document.getElementById("langEn").classList.toggle("active", lang === "en");
-
-        document.getElementById("title").innerText = t.title;
-        document.getElementById("roleLabel").innerText = t.roleLabel;
-        document.getElementById("roleStudent").innerText = t.roleStudent;
-        document.getElementById("roleTeacher").innerText = t.roleTeacher;
-        document.getElementById("usernameLabel").innerText = t.usernameLabel;
-        document.getElementById("passwordLabel").innerText = t.passwordLabel;
-        document.getElementById("confirmLabel").innerText = t.confirmLabel;
-        document.getElementById("username").placeholder = t.username;
-        document.getElementById("password").placeholder = t.password;
-        document.getElementById("confirm").placeholder = t.confirm;
-        document.getElementById("registerBtn").innerText = t.register;
-        document.getElementById("haveAccountText").innerText = t.haveAccount;
-        // *** 关键修改点 ***
-        // 链接到新的登录页 index.html
-        document.getElementById("loginLink").innerHTML = `${t.haveAccount} <a href="index.html" id="loginText">${t.login}</a>`; 
-        document.getElementById("teacherKeyLabel").innerText = t.teacher_key_label;
-        document.getElementById("teacherKey").placeholder = t.teacher_key_placeholder;
+      localStorage.setItem("lang", lang);
+      const t = langText[lang];
+      document.getElementById("title").innerText = t.title;
+      document.getElementById("username").placeholder = t.username;
+      document.getElementById("password").placeholder = t.password;
+      document.getElementById("confirm").placeholder = t.confirm;
+      document.getElementById("registerBtn").innerText = t.register;
+      // *** 链接修改：从 login.html 改为 index.html ***
+      document.getElementById("loginText").innerHTML = `${t.login} <a href='index.html'>${t.login_link}</a>`;
+      document.getElementById("privacyText").innerText = t.privacy;
+      document.getElementById("labelTeacherKey").innerText = t.teacher_key_label;
+      document.getElementById("teacherKey").placeholder = t.teacher_key_placeholder;
     }
 
     function register() {
@@ -296,14 +187,13 @@
 
       msg.style.color = "#27ae60";
       msg.innerText = t.success;
-      // *** 关键修改点 ***
-      // 注册成功后，跳转到新的登录页 index.html
+      // *** 链接修改：从 login.html 改为 index.html ***
       setTimeout(() => window.location.href = "index.html", 1500);
     }
 
     const currentLang = localStorage.getItem("lang") || "zh";
     setLanguage(currentLang);
-</script>
-
+    checkRole();
+  </script>
 </body>
 </html>
