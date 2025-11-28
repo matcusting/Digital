@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title id="title">心理辅导系统 - 登录</title>
+  <style>
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh; /* 占满全屏 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      /* 🌊 动态渐变背景 */
+      background: linear-gradient(-45deg, #a18cd1, #fbc2eb, #a6c1ee, #96e6a1);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .login-box {
+      width: 320px;
+      text-align: center;
+      padding: 40px;
+      
+      /* ✨ 毛玻璃效果 */
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(12px);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .login-box:hover {
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px);
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      color: #333;
+      font-size: 24px;
+      border-bottom: 2px solid #a18cd1;
+      padding-bottom: 10px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+    }
+
+    input[type="text"], input[type="password"], select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus, select:focus {
+        border-color: #a18cd1;
+        box-shadow: 0 0 5px rgba(161, 140, 209, 0.5);
+        outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      background: #fbc2eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    button:hover {
+      background: #a18cd1;
+      transform: translateY(-1px);
+    }
+
+    .error-msg {
+      color: #e74c3c;
+      margin-top: 15px;
+      min-height: 20px;
+    }
+
+    .footer-links {
+      margin-top: 25px;
+      font-size: 14px;
+    }
+
+    .footer-links a {
+      color: #a18cd1;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .footer-links a:hover {
+        text-decoration: underline;
+    }
+    
+    .lang-switcher {
+        margin-bottom: 20px;
+    }
+
+    .lang-switcher button {
+        width: auto;
+        padding: 8px 15px;
+        margin: 0 5px;
+        background-color: #eee;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .lang-switcher button.active {
+        background-color: #a18cd1;
+        color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+    <div class="lang-switcher">
+        <button id="langZh" onclick="setLanguage('zh')">中文</button>
+        <button id="langEn" onclick="setLanguage('en')">English</button>
+    </div>
+    <h1 id="title">心理辅导系统 - 登录</h1>
+    
+    <div class="input-group">
+        <label for="role" id="roleLabel">身份</label>
+        <select id="role">
+            <option value="student" id="roleStudent">学生</option>
+            <option value="teacher" id="roleTeacher">老师</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label for="username" id="usernameLabel">用户名</label>
+        <input type="text" id="username" placeholder="请输入用户名">
+    </div>
+
+    <div class="input-group">
+        <label for="password" id="passwordLabel">密码</label>
+        <input type="password" id="password" placeholder="请输入密码">
+    </div>
+    
+    <button onclick="login()" id="loginBtn">登录</button>
+    
+    <p class="error-msg" id="error"></p>
+
+    <div class="footer-links" id="registerLink">
+        没有账户？ <a href="register.html" id="registerText">立即注册</a>
+    </div>
+    
+    <p class="footer-links" id="privacyText" style="margin-top: 10px; font-size: 12px; color: #888;">
+        您的数据仅存储在浏览器本地，不会上传至任何服务器。
+    </p>
+
+</div>
+
+<script>
+    const langText = {
+        zh: {
+            title: "心理辅导系统 - 登录",
+            roleLabel: "身份",
+            roleStudent: "学生",
+            roleTeacher: "老师",
+            usernameLabel: "用户名",
+            passwordLabel: "密码",
+            username: "请输入用户名",
+            password: "请输入密码",
+            login: "登录",
+            noAccount: "没有账户？",
+            register: "立即注册",
+            privacy: "您的数据仅存储在浏览器本地，不会上传至任何服务器。",
+            error: "用户名或密码错误"
+        },
+        en: {
+            title: "Mental Health System - Login",
+            roleLabel: "Role",
+            roleStudent: "Student",
+            roleTeacher: "Teacher",
+            usernameLabel: "Username",
+            passwordLabel: "Password",
+            username: "Enter Username",
+            password: "Enter Password",
+            login: "Login",
+            noAccount: "Don't have an account?",
+            register: "Register Now",
+            privacy: "Your data is stored locally in your browser and is not uploaded to any server.",
+            error: "Incorrect username or password"
+        }
+    };
+
+    function setLanguage(lang) {
+      localStorage.setItem("lang", lang);
+      const t = langText[lang];
+
+      // 更新按钮状态
+      document.getElementById("langZh").classList.toggle("active", lang === "zh");
+      document.getElementById("langEn").classList.toggle("active", lang === "en");
+
+      document.getElementById("title").innerText = t.title;
+      document.getElementById("roleLabel").innerText = t.roleLabel;
+      document.getElementById("roleStudent").innerText = t.roleStudent;
+      document.getElementById("roleTeacher").innerText = t.roleTeacher;
+      document.getElementById("usernameLabel").innerText = t.usernameLabel;
+      document.getElementById("passwordLabel").innerText = t.passwordLabel;
+      document.getElementById("username").placeholder = t.username;
+      document.getElementById("password").placeholder = t.password;
+      document.getElementById("loginBtn").innerText = t.login;
+      document.getElementById("registerLink").innerHTML = `${t.noAccount} <a href="register.html" id="registerText">${t.register}</a>`;
+      document.getElementById("privacyText").innerText = t.privacy;
+    }
+
+    function login() {
+      const role = document.getElementById("role").value;
+      const user = document.getElementById("username").value.trim();
+      const pass = document.getElementById("password").value.trim();
+      const error = document.getElementById("error");
+
+      const obfuscatedPassword = btoa(pass);
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const found = users.find(u => u.username === user && u.password === obfuscatedPassword && u.role === role);
+
+      if (found) {
+        localStorage.setItem("loggedInUser", JSON.stringify(found));
+        if (role === "student") {
+          // *** 关键修改点 ***
+          // 学生登录成功后，跳转到新的学生页面 student_form.html
+          window.location.href = "student_form.html"; 
+        } else {
+          window.location.href = "teacher.html";
+        }
+      } else {
+        error.innerText = "用户名或密码错误 / Incorrect username or password";
+      }
+    }
+
+    const currentLang = localStorage.getItem("lang") || "zh";
+    document.getElementById("role").value = "student"; // 默认选择学生
+    setLanguage(currentLang);
+</script>
+
+</body>
+</html>
