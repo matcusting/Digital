@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title id="title">心情回报系统 - 老师后台</title>
+  <script>
+    const currentUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (!currentUser || currentUser.role !== "teacher") {
+      alert("请先登录老师账户！");
+      // *** 关键修改点 ***
+      // 登录页现在是 index.html
+      window.location.href = "index.html";
+    }
+  </script>
+  <style>
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      
+      /* 🌊 动态渐变背景 */
+      background: linear-gradient(-45deg, #a18cd1, #fbc2eb, #a6c1ee, #96e6a1);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 40px;
+      
+      /* ✨ 毛玻璃效果 */
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      position: relative;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #a18cd1;
+      padding-bottom: 10px;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .filter-item {
+        flex: 1;
+    }
+
+    .filter-item label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #555;
+    }
+
+    .filter-item input, .filter-item select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      background-color: white;
+    }
+
+    th, td {
+      border: 1px solid #eee;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #a18cd1;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    tr:hover {
+      background-color: #f0f0f0;
+    }
+
+    .risk {
+        background-color: #ffdddd !important; /* 风险报告醒目颜色 */
+        font-weight: bold;
+        color: #e74c3c;
+    }
+
+    .risk:hover {
+        background-color: #ffcaca !important;
+    }
+
+    #logoutBtnTop {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: auto;
+        padding: 10px 20px;
+        background: #a6c1ee;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    #logoutBtnTop:hover {
+        background: #96e6a1;
+    }
+
+    #exportBtn {
+        width: 100%;
+        padding: 12px;
+        background: #96e6a1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s;
+        margin-top: 20px;
+    }
+
+    #exportBtn:hover {
+        background: #a6c1ee;
+    }
+
+    .lang-switcher {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+    }
+
+    .lang-switcher button {
+        width: auto;
+        padding: 8px 15px;
+        margin: 0 5px;
+        background-color: #eee;
+        color: #333;
+        font-size: 14px;
+        display: inline-block;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .lang-switcher button.active {
+        background-color: #a18cd1;
+        color: white;
+    }
+
+    .chart-container {
+        margin-top: 40px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<button onclick="logout()" id="logoutBtnTop">登出</button>
+
+<script>
+    function logout() {
+        localStorage.removeItem("loggedInUser");
+        // *** 关键修改点 ***
+        // 登录页现在是 index.html
+        window.location.href = "index.html";
+    }
+</script>
+
+<div class="lang-switcher">
+    <button id="langZh" onclick="setLanguage('zh')">中文</button>
+    <button id="langEn" onclick="setLanguage('en')">English</button>
+</div>
+
+<div class="container">
+  <h1 id="headerTitle">心情回报系统 - 老师后台</h1>
+
+  <div class="filter-group">
+      <div class="filter-item">
+          <label for="filterName" id="filterNameLabel">按姓名过滤</label>
+          <input type="text" id="filterName" placeholder="输入学生姓名">
+      </div>
+      <div class="filter-item">
+          <label for="filterClass" id="filterClassLabel">按班级/学号过滤</label>
+          <input type="text" id="filterClass" placeholder="输入班级或学号">
+      </div>
+      <div class="filter-item">
+          <label for="filterMood" id="filterMoodLabel">按心情过滤</label>
+          <select id="filterMood">
+              <option value="all" id="moodFilterAll">全部</option>
+              <option value="happy" id="moodFilterHappy">快乐 / Happy</option>
+              <option value="calm" id="moodFilterCalm">平静 / Calm</option>
+              <option value="bored" id="moodFilterBored">无聊 / Bored</option>
+              <option value="stressed" id="moodFilterStressed">压力大 / Stressed</option>
+              <option value="sad" id="moodFilterSad">难过 / Sad</option>
+              <option value="angry" id="moodFilterAngry">生气 / Angry</option>
+              <option value="anxious" id="moodFilterAnxious">焦虑 / Anxious</option>
+              <option value="hopeless" id="moodFilterHopeless">绝望 / Hopeless</option>
+          </select>
+      </div>
+      <div class="filter-item">
+          <label for="filterRisk" id="filterRiskLabel">风险等级</label>
+          <select id="filterRisk">
+              <option value="all" id="riskFilterAll">全部</option>
+              <option value="high" id="riskFilterHigh">高风险 (标红)</option>
+              <option value="normal" id="riskFilterNormal">正常</option>
+          </select>
+      </div>
+  </div>
+
+  <table id="reportsTable">
+      </table>
+  
+  <button id="exportBtn" onclick="exportData()" >导出数据为 Excel/CSV</button>
+
+  <div class="chart-container">
+      <h2 id="moodChartTitle" style="text-align: center; color: #333;">心情统计图</h2>
+      <canvas id="moodChart"></canvas>
+  </div>
+</div>
+
+<script>
+    const langText = {
+        zh: {
+            title: "心情回报系统 - 老师后台",
+            headerTitle: "心情回报系统 - 老师后台",
+            logout: "登出",
+            filterNameLabel: "按姓名过滤",
+            filterClassLabel: "按班级/学号过滤",
+            filterMoodLabel: "按心情过滤",
+            filterRiskLabel: "风险等级",
+            moodFilterAll: "全部", moodFilterHappy: "快乐 / Happy", moodFilterCalm: "平静 / Calm", moodFilterBored: "无聊 / Bored", 
+            moodFilterStressed: "压力大 / Stressed", moodFilterSad: "难过 / Sad", moodFilterAngry: "生气 / Angry", moodFilterAnxious: "焦虑 / Anxious", moodFilterHopeless: "绝望 / Hopeless",
+            riskFilterAll: "全部", riskFilterHigh: "高风险 (标红)", riskFilterNormal: "正常",
+            th_date: "日期", th_name: "姓名", th_class: "班级/学号", th_mood: "心情", th_problem: "主要问题", th_message: "留言",
+            moodChartTitle: "心情统计图",
+            exportBtn: "导出数据为 Excel/CSV",
+            placeholderName: "输入学生姓名",
+            placeholderClass: "输入班级或学号",
+            noData: "没有报告数据。",
+            mood_happy: "快乐", mood_calm: "平静", mood_bored: "无聊", mood_stressed: "压力大", mood_sad: "难过", mood_angry: "生气", mood_anxious: "焦虑", mood_hopeless: "绝望",
+            problem_study: "学习压力", problem_family: "家庭关系", problem_relationship: "人际关系", problem_physical: "身体不适", problem_sleep: "睡眠问题", problem_career: "未来规划", problem_other: "其他",
+            no_message: "（无）"
+        },
+        en: {
+            title: "Mood Report System - Teacher Backend",
+            headerTitle: "Mood Report System - Teacher Backend",
+            logout: "Logout",
+            filterNameLabel: "Filter by Name",
+            filterClassLabel: "Filter by Class/ID",
+            filterMoodLabel: "Filter by Mood",
+            filterRiskLabel: "Risk Level",
+            moodFilterAll: "All", moodFilterHappy: "Happy", moodFilterCalm: "Calm", moodFilterBored: "Bored", 
+            moodFilterStressed: "Stressed", moodFilterSad: "Sad", moodFilterAngry: "Angry", moodFilterAnxious: "Anxious", moodFilterHopeless: "Hopeless",
+            riskFilterAll: "All", riskFilterHigh: "High Risk (Red)", riskFilterNormal: "Normal",
+            th_date: "Date", th_name: "Name", th_class: "Class/ID", th_mood: "Mood", th_problem: "Main Problem", th_message: "Message",
+            moodChartTitle: "Mood Statistics Chart",
+            exportBtn: "Export Data to Excel/CSV",
+            placeholderName: "Enter Student Name",
+            placeholderClass: "Enter Class or ID",
+            noData: "No report data found.",
+            mood_happy: "Happy", mood_calm: "Calm", mood_bored: "Bored", mood_stressed: "Stressed", mood_sad: "Sad", mood_angry: "Angry", mood_anxious: "Anxious", mood_hopeless: "Hopeless",
+            problem_study: "Study Pressure", problem_family: "Family", problem_relationship: "Relationship", problem_physical: "Physical", problem_sleep: "Sleep Issues", problem_career: "Career", problem_other: "Other",
+            no_message: "N/A"
+        }
+    };
+    
+    // 辅助函数：将标准值转为对应的中文Key（用于在老师端统一显示中文）
+    function getChineseKey(standardValue) {
+        const prefix = standardValue.startsWith('mood') ? 'mood_' : standardValue.startsWith('problem') ? 'problem_' : '';
+        const key = prefix + standardValue;
+        
+        // 尝试从中文文本中查找
+        if (langText.zh.hasOwnProperty(key)) {
+            return langText.zh[key];
+        }
+        return standardValue; // 如果找不到，返回原始值
+    }
+    
+    // 渲染表格
+    function renderTable() {
+        const lang = localStorage.getItem("lang") || "zh";
+        const t = langText[lang];
+        const dataMap = langText[lang]; // 用于获取翻译文本
+
+        const filterName = document.getElementById("filterName").value.toLowerCase();
+        const filterClass = document.getElementById("filterClass").value.toLowerCase();
+        const filterMood = document.getElementById("filterMood").value;
+        const filterRisk = document.getElementById("filterRisk").value;
+        const allData = JSON.parse(localStorage.getItem("moodReports") || "[]").reverse(); // 倒序显示最新报告
+        const table = document.getElementById("reportsTable");
+        
+        // 过滤数据
+        const filteredData = allData.filter(record => {
+            const nameMatch = record.name.toLowerCase().includes(filterName);
+            const classMatch = (record.class || '').toLowerCase().includes(filterClass);
+            const moodMatch = filterMood === 'all' || record.mood === filterMood;
+            
+            let riskMatch = true;
+            if (filterRisk === 'high') {
+                riskMatch = record.isCrisis || (record.sentimentScore && record.sentimentScore <= -2);
+            } else if (filterRisk === 'normal') {
+                riskMatch = !(record.isCrisis || (record.sentimentScore && record.sentimentScore <= -2));
+            }
+
+            return nameMatch && classMatch && moodMatch && riskMatch;
+        });
+
+        if (filteredData.length === 0) {
+            table.innerHTML = `<caption>${t.noData}</caption>`;
+            renderChart([]); // 没有数据时清空图表
+            return;
+        }
+
+        // 构建表格 HTML
+        let tableHTML = `
+            <thead>
+                <tr>
+                    <th>${t.th_date}</th>
+                    <th>${t.th_name}</th>
+                    <th>${t.th_class}</th>
+                    <th>${t.th_mood}</th>
+                    <th>${t.th_problem}</th>
+                    <th>${t.th_message}</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        filteredData.forEach(record => {
+            // 将存储的标准值 (如 'happy', 'study') 转换成当前语言的显示文本
+            const translatedMood = dataMap['mood_' + record.mood] || record.mood;
+            const translatedProblem = dataMap['problem_' + record.problem] || record.problem;
+            const messageContent = (record.message || "").trim() !== "" ? record.message : dataMap['no_message'];
+            
+            // 风险判断 (isCrisis 或 sentimentScore <= -2)
+            const score = record.sentimentScore || 0;
+            const isHighRisk = record.isCrisis || score <= -2;
+            const rowClass = isHighRisk ? 'class="risk"' : '';
+
+            tableHTML += `
+                <tr ${rowClass}>
+                    <td>${record.date}</td>
+                    <td>${record.name}</td>
+                    <td>${record.class || dataMap['no_message']}</td>
+                    <td>${translatedMood}</td>
+                    <td>${translatedProblem}</td>
+                    <td>${messageContent}</td>
+                </tr>
+            `;
+        });
+
+        tableHTML += `</tbody>`;
+        table.innerHTML = tableHTML;
+        
+        renderChart(filteredData);
+    }
+    
+    let moodChartInstance = null; // 用于存储 Chart 实例
+
+    // 渲染图表
+    function renderChart(data) {
+        const lang = localStorage.getItem("lang") || "zh";
+        const t = langText[lang];
+        const ctx = document.getElementById('moodChart').getContext('2d');
+
+        if (moodChartInstance) {
+            moodChartInstance.destroy(); // 销毁旧图表
+        }
+
+        const moodCounts = data.reduce((acc, record) => {
+            const moodDisplay = t['mood_' + record.mood] || record.mood;
+            acc[moodDisplay] = (acc[moodDisplay] || 0) + 1;
+            return acc;
+        }, {});
+        
+        const labels = Object.keys(moodCounts);
+        const counts = Object.values(moodCounts);
+
+        moodChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: t.moodChartTitle,
+                    data: counts,
+                    backgroundColor: [
+                        '#96e6a1', // happy
+                        '#a6c1ee', // calm
+                        '#cccccc', // bored
+                        '#ffcc99', // stressed
+                        '#a18cd1', // sad
+                        '#ff9999', // angry
+                        '#fbc2eb', // anxious
+                        '#e74c3c'  // hopeless
+                    ],
+                    borderColor: [
+                        '#3cb371', '#6495ed', '#999999', '#ffa500', 
+                        '#8a2be2', '#dc143c', '#ff69b4', '#c0392b'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        },
+                        title: {
+                            display: true,
+                            text: t.th_name + ' (' + t.th_mood + ')' // 人次
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: t.moodChartTitle
+                    }
+                }
+            }
+        });
+    }
+
+    // 导出数据
+    function exportData() {
+        const allData = JSON.parse(localStorage.getItem("moodReports") || "[]").reverse();
+        const lang = localStorage.getItem("lang") || "zh";
+        const t = langText[lang];
+        const dataMap = langText[lang];
+
+        const headers = [t.th_date, t.th_name, t.th_class, t.th_mood, t.th_problem, t.th_message, "情绪分数", "是否危机"];
+        let csv = headers.join(',') + '\n';
+
+        allData.forEach(record => {
+            const translatedMood = dataMap['mood_' + record.mood] || record.mood;
+            const translatedProblem = dataMap['problem_' + record.problem] || record.problem;
+            const messageContent = (record.message || "").replace(/"/g, '""'); // 处理双引号
+            
+            const row = [
+                record.date,
+                record.name,
+                record.class || '',
+                translatedMood,
+                translatedProblem,
+                `"${messageContent}"`, // 留言加双引号，防止逗号干扰
+                record.sentimentScore || 0,
+                record.isCrisis ? '是' : '否'
+            ];
+            csv += row.join(',') + '\n';
+        });
+
+        const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'mood_reports_' + new Date().toLocaleDateString().replace(/\//g, '-') + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+    
+    // 语言切换和初始化
+    function setLanguage(lang) {
+        localStorage.setItem("lang", lang);
+        const t = langText[lang];
+
+        document.getElementById("langZh").classList.toggle("active", lang === "zh");
+        document.getElementById("langEn").classList.toggle("active", lang === "en");
+
+        document.getElementById("title").innerText = t.title;
+        document.getElementById("headerTitle").innerText = t.headerTitle;
+        document.getElementById("logoutBtnTop").innerText = t.logout;
+        
+        // 过滤器标签和选项
+        document.getElementById("filterNameLabel").innerText = t.filterNameLabel;
+        document.getElementById("filterClassLabel").innerText = t.filterClassLabel;
+        document.getElementById("filterMoodLabel").innerText = t.filterMoodLabel;
+        document.getElementById("filterRiskLabel").innerText = t.filterRiskLabel;
+        
+        document.getElementById("filterName").placeholder = t.placeholderName;
+        document.getElementById("filterClass").placeholder = t.placeholderClass;
+
+        document.getElementById("moodFilterAll").innerText = t.moodFilterAll;
+        document.getElementById("moodFilterHappy").innerText = t.moodFilterHappy;
+        document.getElementById("moodFilterCalm").innerText = t.moodFilterCalm;
+        document.getElementById("moodFilterBored").innerText = t.moodFilterBored;
+        document.getElementById("moodFilterStressed").innerText = t.moodFilterStressed;
+        document.getElementById("moodFilterSad").innerText = t.moodFilterSad;
+        document.getElementById("moodFilterAngry").innerText = t.moodFilterAngry;
+        document.getElementById("moodFilterAnxious").innerText = t.moodFilterAnxious;
+        document.getElementById("moodFilterHopeless").innerText = t.moodFilterHopeless;
+
+        document.getElementById("riskFilterAll").innerText = t.riskFilterAll;
+        document.getElementById("riskFilterHigh").innerText = t.riskFilterHigh;
+        document.getElementById("riskFilterNormal").innerText = t.riskFilterNormal;
+
+        document.getElementById("exportBtn").innerText = t.exportBtn;
+        document.getElementById("moodChartTitle").innerText = t.moodChartTitle;
+
+        renderTable(); // 重新渲染表格以应用新的语言
+    }
+
+    // 事件监听器
+    document.getElementById("filterName").addEventListener("input", renderTable);
+    document.getElementById("filterClass").addEventListener("input", renderTable);
+    document.getElementById("filterMood").addEventListener("change", renderTable);
+    document.getElementById("filterRisk").addEventListener("change", renderTable);
+    
+    // 页面加载时初始化
+    const savedLang = localStorage.getItem("lang") || "zh";
+    setLanguage(savedLang);
+    
+</script>
+
+</body>
+</html>
