@@ -1,0 +1,412 @@
+<script>
+  // 检查是否登录
+  const currentUser = JSON.parse(localStorage.getItem("loggedInUser"));
+  if (!currentUser || currentUser.role !== "student") {
+    alert("请先登录学生账户！");
+    // *** 链接修改：从 login.html 改为 index.html ***
+    window.location.href = "index.html";
+  }
+</script>
+
+<button onclick="logout()" id="logoutBtnTop">登出</button>
+
+<script>
+  function logout() {
+    localStorage.removeItem("loggedInUser");
+    // *** 链接修改：从 login.html 改为 index.html ***
+    window.location.href = "index.html";
+  }
+</script>
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>心情回报系统 - 学生填写页</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      
+      /* 🌊 舒缓动态渐变背景 */
+      background: linear-gradient(-45deg, #a18cd1, #fbc2eb, #a6c1ee, #96e6a1);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 40px;
+      
+      /* ✨ 毛玻璃效果 */
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 { text-align: center; color: #2c3e50; letter-spacing: 1px; }
+    label { display: block; margin-top: 15px; font-weight: bold; color: #34495e; }
+    
+    input[type="text"], select, textarea {
+      width: 100%; margin-top: 8px; padding: 12px;
+      border-radius: 8px; border: 1px solid #ccc; font-size: 16px;
+      box-sizing: border-box; background: rgba(255,255,255,0.9);
+    }
+    input:focus, select:focus, textarea:focus { border-color: #a6c1ee; outline: none; }
+
+    button#submitBtn {
+      width: 100%; 
+      background: linear-gradient(to right, #96e6a1 0%, #a6c1ee 100%);
+      color: white; border: none;
+      cursor: pointer; margin-top: 25px; padding: 15px; font-size: 16px; border-radius: 8px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    button#submitBtn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(150, 230, 161, 0.4); }
+
+    /* 顶部登出按钮样式 */
+    #logoutBtnTop {
+        position: fixed; top: 15px; right: 15px;
+        padding: 8px 15px; background: rgba(255,255,255,0.9); color: #e74c3c;
+        border: 1px solid #e74c3c; border-radius: 20px; cursor: pointer; font-weight: bold;
+        z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+    }
+    #logoutBtnTop:hover { background: #e74c3c; color: white; }
+
+    .success { text-align: center; color: #27ae60; margin-top: 20px; font-weight: bold; }
+    
+    .lang-switch { text-align: right; margin-bottom: 10px; }
+    .lang-switch button { margin-left: 5px; border: none; background: none; font-size: 14px; cursor: pointer; color: #3498db; font-weight: bold;}
+
+    /* 历史记录区域 */
+    #historySection {
+        max-width: 800px; margin: 40px auto; padding: 30px;
+        background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px);
+        border-radius: 16px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+    .history-item { 
+        border: 1px solid #eee; padding: 20px; margin-bottom: 15px; 
+        border-radius: 10px; background-color: rgba(255,255,255,0.7); 
+    }
+    .history-header { font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 10px; color: #a6c1ee; }
+    .history-data p { margin: 5px 0; color: #555; }
+    
+    .chart-container { 
+        width: 100%; margin-bottom: 30px; padding: 15px; box-sizing: border-box; 
+        background: rgba(255,255,255,0.8); border-radius: 10px; 
+    }
+
+    /* 危机干预模态框 */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+    .modal-content { background-color: #fff; margin: 15% auto; padding: 30px; border-radius: 15px; width: 80%; max-width: 400px; text-align: center; border-left: 8px solid #e74c3c; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-title { color: #e74c3c; font-size: 22px; font-weight: bold; margin-bottom: 15px; }
+    .modal-body { font-size: 16px; color: #333; margin-bottom: 25px; line-height: 1.5; }
+    .modal-btn { background-color: #e74c3c; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+    .helpline-box { background: #fceceb; padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: bold; color: #c0392b; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="lang-switch">
+      🌐 <button onclick="setLanguage('zh')">中文</button> | <button onclick="setLanguage('en')">English</button> | <button onclick="setLanguage('ms')">Bahasa</button>
+    </div>
+
+    <h1 id="title">💬 心情回报系统</h1>
+    <form id="moodForm">
+      <label id="label-name">姓名 / 学号：</label>
+      <input type="text" id="name" required placeholder="请输入姓名或学号">
+
+      <label id="label-class">班级：</label>
+      <input type="text" id="class" required placeholder="例如：高一A">
+
+      <label id="label-mood">今天的心情：</label>
+      <select id="mood">
+        <option value="😊 开心">😊 开心</option>
+        <option value="😐 普通">😐 普通</option>
+        <option value="😔 难过">😔 难过</option>
+        <option value="😡 生气">😡 生气</option>
+        <option value="😰 焦虑">😰 焦虑</option>
+      </select>
+
+      <label id="label-problem">主要困扰：</label>
+      <select id="problem">
+        <option value="课业压力">课业压力</option>
+        <option value="人际关系">人际关系</option>
+        <option value="被霸凌">被霸凌</option>
+        <option value="家庭问题">家庭问题</option>
+        <option value="其他">其他</option>
+      </select>
+
+      <label id="label-message">想说的话：</label>
+      <textarea id="message" rows="4" placeholder="可以写下你的感受..."></textarea>
+
+      <button type="submit" id="submitBtn">提交</button>
+      <p class="success" id="successMessage" style="display:none;">✅ 提交成功，谢谢你的分享！</p>
+    </form>
+  </div>
+
+  <div id="historySection">
+    <h2 id="historyTitle">我的历史记录</h2>
+    <div class="chart-container">
+      <h3 id="chartTitle" style="text-align: center; color: #555; font-weight: 500;">心情波动图 (最近14条)</h3>
+      <canvas id="moodChart"></canvas>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+  <div id="crisisModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">⚠️ 也是一种求救信号</div>
+        <div class="modal-body">
+            我们注意到你可能正在经历非常痛苦的时刻。请记住，你并不孤单。
+            <div class="helpline-box">
+                🆘 24小时辅导热线: 15999
+            </div>
+            老师和辅导员随时愿意倾听你的声音。
+        </div>
+        <button class="modal-btn" onclick="closeModal()">我知道了</button>
+    </div>
+  </div>
+
+  <script>
+    let myChart = null;
+    const moodValueMapping = { "😊 开心": 5, "😐 普通": 3, "😰 焦虑": 2, "😡 生气": 2, "😔 难过": 1, "default": 0 };
+
+    const AI_ENGINE = {
+        crisis_keywords: ["想死", "自杀", "活不下去了", "结束生命", "kill myself", "suicide", "want to die", "bunuh diri", "mati", "tak nak hidup"],
+        negative_words: ["难过", "痛苦", "累", "哭", "烦", "sad", "pain", "cry", "tired", "hate", "sedih", "sakit", "penat", "benci"],
+        positive_words: ["开心", "棒", "好", "希望", "happy", "good", "great", "hope", "gembira", "bagus"]
+    };
+
+    function analyzeSentimentAI(text) {
+        if (!text) return { score: 0, isCrisis: false };
+        const lowerText = text.toLowerCase();
+        let score = 0;
+        let isCrisis = false;
+        for (let word of AI_ENGINE.crisis_keywords) {
+            if (lowerText.includes(word)) { isCrisis = true; score -= 10; break; }
+        }
+        if (!isCrisis) {
+            for (let word of AI_ENGINE.negative_words) { if (lowerText.includes(word)) score -= 1; }
+            for (let word of AI_ENGINE.positive_words) { if (lowerText.includes(word)) score += 1; }
+        }
+        return { score, isCrisis };
+    }
+
+    const translations = {
+      zh: {
+        title: "💬 心情回报系统", name: "姓名 / 学号：", name_placeholder: "请输入姓名或学号", class: "班级：", class_placeholder: "例如：高一A", 
+        mood: "今天的心情：", problem: "主要困扰：", message: "想说的话：", message_placeholder: "可以写下你的感受...",
+        submit: "提交", success: "✅ 提交成功，谢谢你的分享！", logout: "登出",
+        mood_options: ["😊 开心", "😐 普通", "😔 难过", "😡 生气", "😰 焦虑"],
+        problem_options: ["课业压力", "人际关系", "被霸凌", "家庭问题", "其他"],
+        history_title: "我的历史记录", history_date: "提交日期", history_name: "姓名/学号", history_class: "班级",
+        history_mood: "心情", history_problem: "主要困扰", history_message: "留言", history_none: "（无）",
+        history_empty: "您还没有任何历史记录。", history_error: "无法识别当前用户。",
+        chart_title: "心情波动图 (最近14条)", chart_label: "心情等级 (5=开心, 1=难过)",
+        data_map: {"😊 开心": "😊 开心", "😐 普通": "😐 普通", "😔 难过": "😔 难过", "😡 生气": "😡 生气", "😰 焦虑": "😰 焦虑", "课业压力": "课业压力", "人际关系": "人际关系", "被霸凌": "被霸凌", "家庭问题": "家庭问题", "其他": "其他", "（无）": "（无）"}
+      },
+      en: {
+        title: "💬 Mood Report System", name: "Name / Student ID:", name_placeholder: "Enter your name or ID", class: "Class:", class_placeholder: "e.g., Grade1A", 
+        mood: "How do you feel today?", problem: "Main problem:", message: "Anything you want to say:", message_placeholder: "Write your thoughts here...",
+        submit: "Submit", success: "✅ Submitted successfully. Thank you for sharing!", logout: "Logout",
+        mood_options: ["😊 Happy", "😐 Okay", "😔 Sad", "😡 Angry", "😰 Anxious"],
+        problem_options: ["Academic stress", "Relationships", "Bullying", "Family issues", "Others"],
+        history_title: "My History Records", history_date: "Submission Date", history_name: "Name/ID", history_class: "Class",
+        history_mood: "Mood", history_problem: "Main Problem", history_message: "Message", history_none: "(None)",
+        history_empty: "You do not have any history records yet.", history_error: "Unable to identify current user.",
+        data_map: {"😊 开心": "😊 Happy", "😐 普通": "😐 Okay", "😔 难过": "😔 Sad", "😡 生气": "😡 Angry", "😰 焦虑": "😰 Anxious", "课业压力": "Academic stress", "人际关系": "Relationships", "被霸凌": "Bullying", "家庭问题": "Family issues", "其他": "Others", "（无）": "(None)"}
+      },
+      ms: {
+        title: "💬 Sistem Laporan Emosi", name: "Nama / Nombor Pelajar:", name_placeholder: "Masukkan nama atau nombor pelajar", class: "Kelas:", class_placeholder: "cth: Tingkatan1A", 
+        mood: "Perasaan hari ini:", problem: "Masalah utama:", message: "Ingin berkongsi apa-apa?", message_placeholder: "Tulis perasaan anda di sini...",
+        submit: "Hantar", success: "✅ Berjaya dihantar. Terima kasih kerana berkongsi!", logout: "Log Keluar",
+        mood_options: ["😊 Gembira", "😐 Biasa", "😔 Sedih", "😡 Marah", "😰 Cemas"],
+        problem_options: ["Tekanan pelajaran", "Hubungan", "Buli", "Masalah keluarga", "Lain-lain"],
+        history_title: "Rekod Sejarah Saya", history_date: "Tarikh Hantar", history_name: "Nama/ID", history_class: "Kelas",
+        history_mood: "Perasaan", history_problem: "Masalah Utama", history_message: "Mesej", history_none: "(Tiada)",
+        history_empty: "Anda belum mempunyai sebarang rekod sejarah.", history_error: "Tidak dapat mengenal pasti pengguna semasa.",
+        chart_title: "Carta Emosi (14 rekod terakhir)", chart_label: "Tahap Emosi (5=Gembira, 1=Sedih)",
+        data_map: {"😊 开心": "😊 Gembira", "😐 普通": "😐 Biasa", "😔 难过": "😔 Sedih", "😡 生气": "😡 Marah", "😰 焦虑": "😰 Cemas", "课业压力": "Tekanan pelajaran", "人际关系": "Hubungan", "被霸凌": "Buli", "家庭问题": "Masalah keluarga", "其他": "Lain-lain", "（无）": "(Tiada)"}
+      }
+    };
+    
+    function getChineseKey(value) {
+        if (!value) return value;
+        if (translations.zh.data_map[value]) return value;
+        const allKeys = Object.keys(translations.zh.data_map);
+        for (const key of allKeys) {
+            if (translations.en.data_map && translations.en.data_map[key] === value) return key; 
+            if (translations.ms.data_map && translations.ms.data_map[key] === value) return key; 
+        }
+        return value; 
+    }
+
+    function setLanguage(lang) {
+      localStorage.setItem("lang", lang);
+      const t = translations[lang];
+      document.getElementById("logoutBtnTop").innerText = t.logout;
+      document.getElementById("title").innerText = t.title;
+      document.getElementById("label-name").innerText = t.name;
+      document.getElementById("name").placeholder = t.name_placeholder;
+      document.getElementById("label-class").innerText = t.class; 
+      document.getElementById("class").placeholder = t.class_placeholder; 
+      document.getElementById("label-mood").innerText = t.mood;
+      document.getElementById("label-problem").innerText = t.problem;
+      document.getElementById("label-message").innerText = t.message;
+      document.getElementById("message").placeholder = t.message_placeholder;
+      
+      // *** 修正：Submit 按钮 ID 修正 ***
+      document.getElementById("submitBtn").innerText = t.submit;
+      
+      document.getElementById("successMessage").innerText = t.success;
+      document.getElementById("historyTitle").innerText = t.history_title;
+      document.getElementById("chartTitle").innerText = t.chart_title;
+
+      // Dropdown Options
+      document.getElementById("mood").innerHTML = t.mood_options.map(m => `<option value="${m}">${m}</option>`).join("");
+      document.getElementById("problem").innerHTML = t.problem_options.map(p => `<option value="${p}">${p}</option>`).join("");
+      
+      renderHistory();
+    }
+
+    const getStandardValue = (value, optionType) => {
+        const currentLang = localStorage.getItem("lang") || "zh";
+        if (currentLang === 'zh') return value;
+        if (optionType === 'class') return value; 
+        const currentOptions = translations[currentLang][`${optionType}_options`];
+        const chineseOptions = translations.zh[`${optionType}_options`];
+        const index = currentOptions.findIndex(v => v === value);
+        if (index !== -1) return chineseOptions[index];
+        return value;
+    }
+
+    function renderMoodChart(userRecords, t) {
+        const ctx = document.getElementById('moodChart').getContext('2d');
+        if (myChart) myChart.destroy();
+        const chartData = userRecords.slice(0, 14).reverse();
+        const labels = chartData.map(r => r.date);
+        const dataPoints = chartData.map(r => {
+            const chineseKey = getChineseKey(r.mood);
+            return moodValueMapping[chineseKey] || moodValueMapping["default"];
+        });
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: t.chart_label,
+                    data: dataPoints,
+                    borderColor: '#a6c1ee', 
+                    backgroundColor: 'rgba(166, 193, 238, 0.5)',
+                    tension: 0.3,
+                    fill: true,
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true, max: 5, min: 0, ticks: { stepSize: 1 } } }, responsive: true, maintainAspectRatio: true }
+        });
+    }
+
+    function renderHistory() {
+        const historyListDiv = document.getElementById("historyList");
+        const allData = JSON.parse(localStorage.getItem("moodReports") || "[]");
+        const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+        const currentUserName = loggedInUser ? loggedInUser.username : null;
+        const lang = localStorage.getItem("lang") || "zh";
+        const t = translations[lang];
+        const dataMap = t.data_map;
+
+        historyListDiv.innerHTML = "";
+        if (!currentUserName) { historyListDiv.innerHTML = `<p>${t.history_error}</p>`; return; }
+
+        const userRecords = allData.filter(r => r.name === currentUserName);
+        userRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        renderMoodChart(userRecords, t); 
+
+        if (userRecords.length === 0) { historyListDiv.innerHTML = `<p>${t.history_empty}</p>`; return; }
+
+        userRecords.forEach(r => {
+            const translatedMood = dataMap[r.mood] || r.mood;
+            const translatedProblem = dataMap[r.problem] || r.problem;
+            const messageText = (r.message || "").trim();
+            const translatedMessage = messageText !== "" ? messageText : (dataMap["（无）"] || t.history_none);
+
+            const itemDiv = document.createElement("div");
+            itemDiv.className = 'history-item';
+            itemDiv.innerHTML = `
+                <div class="history-header">${t.history_date}: ${r.date}</div>
+                <div class="history-data">
+                    <p><strong>${t.history_name}:</strong> ${r.name}</p>
+                    <p><strong>${t.history_class}:</strong> ${r.class || 'N/A'}</p> 
+                    <p><strong>${t.history_mood}:</strong> ${translatedMood}</p>
+                    <p><strong>${t.history_problem}:</strong> ${translatedProblem}</p>
+                    <p><strong>${t.history_message}:</strong> ${translatedMessage}</p>
+                </div>
+            `;
+            historyListDiv.appendChild(itemDiv);
+        });
+    }
+
+    document.getElementById("moodForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      document.getElementById("successMessage").style.display = "block";
+
+      const currentLang = localStorage.getItem("lang") || "zh";
+      const moodValue = document.getElementById("mood").value;
+      const problemValue = document.getElementById("problem").value;
+      const messageValue = document.getElementById("message").value;
+
+      const analysis = analyzeSentimentAI(messageValue);
+
+      const record = {
+        name: document.getElementById("name").value,
+        class: document.getElementById("class").value.trim() || '未填写', 
+        mood: getStandardValue(moodValue, 'mood'),
+        problem: getStandardValue(problemValue, 'problem'),
+        message: messageValue,
+        date: new Date().toLocaleDateString(),
+        sentimentScore: analysis.score,
+        isCrisis: analysis.isCrisis
+      };
+
+      if (analysis.isCrisis) {
+          document.getElementById("crisisModal").style.display = "block";
+      } else {
+          document.getElementById("successMessage").style.display = "block";
+          setTimeout(() => { document.getElementById("successMessage").style.display = "none"; }, 3000);
+      }
+
+      let allData = JSON.parse(localStorage.getItem("moodReports") || "[]");
+      allData.push(record);
+      localStorage.setItem("moodReports", JSON.stringify(allData));
+
+      e.target.reset();
+      setLanguage(currentLang);
+    });
+
+    function closeModal() {
+        document.getElementById("crisisModal").style.display = "none";
+    }
+
+    const savedLang = localStorage.getItem("lang") || "zh";
+    setLanguage(savedLang);
+  </script>
+</body>
+</html>
